@@ -1,0 +1,413 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
+
+	<title>Flask/Gevent WebSocket Test</title>
+    
+	<script type="text/javascript" charset="utf-8">
+		var acq_flag = false;
+		var waiting_for_preImg = false;
+		var waiting_for_conv = false;
+		var waiting_for_solv = false;
+		var waiting_for_algo = false;
+		var json_aqc = '{"aqc": ';
+		var json_pre = ', "waiting": ';
+		var json_conv = ', "conv": ';
+		var json_solv = ', "solve": ';
+		var json_algo = ', "algo": ';
+		var json_final = '}';
+		
+		$(document).ready(function(){
+			if ("WebSocket" in window) {
+				cam = new WebSocket("ws://" + document.domain + ":9999/camera");
+				cam.onmessage = function (msg) {
+					json_obj = JSON.parse(msg.data);
+					if(acq_flag == false){
+						$("#cam_real").attr('src', 'data:image/jpg;base64,' + json_obj.img);
+						cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+					}
+					
+					if(waiting_for_preImg == true){
+						if(json_obj.good_img == true){
+							$("#text_box").val('Imagem Processada.');
+							$("#cam_aquisition").attr('src', 'data:image/jpg;base64,' + json_obj.preImg);
+							$("#threshold").prop("disabled", true);
+							acq_flag = true;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+						}else{
+							$("#text_box").val('Imagem rejeitada, o algoritmo de preprocessamento de imagem não encontrou um sudoku válido.\nÉ possivel que não contenha um sudoku ou esteja impercetível.');
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+							$("#acquisition").prop("disabled", false);
+							$("#threshold").prop("disabled", true);
+							$("#conv").prop("disabled", true);
+							$("#solve").prop("disabled", true);
+							$("#algorit").prop("disabled", true);
+						}
+					}
+					
+					if(waiting_for_conv == true){
+						if(json_obj.good_img == true){
+							$("#text_box").val('Labels obtidas pela rede convolucional:\n'.concat(json_obj.labels.slice(0,9),
+							"\n", json_obj.labels.slice(9,18), "\n", json_obj.labels.slice(18,27), "\n", json_obj.labels.slice(27,36),
+							"\n", json_obj.labels.slice(36,45), "\n", json_obj.labels.slice(45,54), "\n", json_obj.labels.slice(54,63), 
+							"\n", json_obj.labels.slice(63,72), "\n", json_obj.labels.slice(72,81), "\n", 
+                                                        'Probabilidades obtidas pela rede convolucional:\n'.concat(json_obj.probs.slice(0,9),
+							"\n", json_obj.probs.slice(9,18), "\n", json_obj.probs.slice(18,27), "\n", json_obj.probs.slice(27,36),
+							"\n", json_obj.probs.slice(36,45), "\n", json_obj.probs.slice(45,54), "\n", json_obj.probs.slice(54,63), 
+							"\n", json_obj.probs.slice(63,72), "\n", json_obj.probs.slice(72,81))));
+							$("#cam_aquisition").attr('src', 'data:image/jpg;base64,' + json_obj.convImg);
+							$("#conv").prop("disabled", true);
+							acq_flag = true;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+						}else{
+							$("#text_box").val('Imagem rejeitada, o algoritmo de preprocessamento de imagem não encontrou um sudoku válido.\nÉ possivel que não contenha um sudoku ou esteja impercetível.');
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+							$("#acquisition").prop("disabled", false);
+							$("#threshold").prop("disabled", true);
+							$("#conv").prop("disabled", true);
+							$("#solve").prop("disabled", true);
+							$("#algorit").prop("disabled", true);
+						}
+					}
+					
+					if(waiting_for_solv == true){
+						if(json_obj.good_solve == true){
+							$("#text_box").val('Solução obtida pela rede convolucional:\n'.concat(json_obj.solution.slice(0,9),
+							"\n", json_obj.solution.slice(9,18), "\n", json_obj.solution.slice(18,27), "\n", json_obj.solution.slice(27,36),
+							"\n", json_obj.solution.slice(36,45), "\n", json_obj.solution.slice(45,54), "\n", json_obj.solution.slice(54,63), 
+							"\n", json_obj.solution.slice(63,72), "\n", json_obj.solution.slice(72,81), "\n", 
+                                                        'Probabilidades obtidas pela rede convolucional:\n'.concat(json_obj.probs.slice(0,9),
+							"\n", json_obj.probs.slice(9,18), "\n", json_obj.probs.slice(18,27), "\n", json_obj.probs.slice(27,36),
+							"\n", json_obj.probs.slice(36,45), "\n", json_obj.probs.slice(45,54), "\n", json_obj.probs.slice(54,63), 
+							"\n", json_obj.probs.slice(63,72), "\n", json_obj.probs.slice(72,81))));
+							$("#cam_aquisition").attr('src', 'data:image/jpg;base64,' + json_obj.solvImg);
+							$("#solve").prop("disabled", true);
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+						}else{
+							$("#text_box").val('Ocorreu um erro e não foi possivel encontrar a solução.');
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+							$("#acquisition").prop("disabled", false);
+							$("#threshold").prop("disabled", true);
+							$("#conv").prop("disabled", true);
+							$("#solve").prop("disabled", true);
+							$("#algorit").prop("disabled", true);
+						}
+					}
+					
+					if(waiting_for_algo == true){
+						if(json_obj.good_solve == true){
+							$("#text_box").val('Solução obtida pelo algoritomo de resolução:\n'.concat(json_obj.solution.slice(0,9),
+							"\n", json_obj.solution.slice(9,18), "\n", json_obj.solution.slice(18,27), "\n", json_obj.solution.slice(27,36),
+							"\n", json_obj.solution.slice(36,45), "\n", json_obj.solution.slice(45,54), "\n", json_obj.solution.slice(54,63), 
+							"\n", json_obj.solution.slice(63,72), "\n", json_obj.solution.slice(72,81)));
+							$("#cam_aquisition").attr('src', 'data:image/jpg;base64,' + json_obj.solvImg);
+							$("#solve").prop("disabled", true);
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+						}else{
+							$("#text_box").val('Ocorreu um erro e não foi possivel encontrar a solução.');
+							acq_flag = false;
+							waiting_for_preImg = false;
+							waiting_for_conv = false;
+							waiting_for_solv = false;
+							waiting_for_algo = false;
+							$("#acquisition").prop("disabled", false);
+							$("#threshold").prop("disabled", true);
+							$("#conv").prop("disabled", true);
+							$("#solve").prop("disabled", true);
+							$("#algorit").prop("disabled", true);
+						}
+					}
+				};
+				cam.onerror = function(e) {
+					console.log(e);
+				}
+			} else {
+				alert("WebSocket not supported");
+			}
+		});
+		
+		
+		function acquisition_click(_this){
+			$("#acquisition").prop("disabled", true);
+			$("#threshold").prop("disabled", false);
+			$("#conv").prop("disabled", false);
+			$("#solve").prop("disabled", false);
+			$("#algorit").prop("disabled", false);
+			acq_flag = true;
+			waiting_for_preImg = false;
+			waiting_for_conv = false;
+			waiting_for_solv = false;
+			waiting_for_algo = false;
+			cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+			$("#text_box").val('Imagem Recebida');
+		}
+		
+		function threshold_click(_this){
+			$("#threshold").prop("disabled", true);
+			acq_flag = true;
+			waiting_for_preImg = true;
+			waiting_for_conv = false;
+			waiting_for_solv = false;
+			waiting_for_algo = false;
+			cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+		}
+		
+		function conv_click(_this){
+			$("#conv").prop("disabled", true);
+			acq_flag = true;
+			waiting_for_preImg = false;
+			waiting_for_conv = true;
+			waiting_for_solv = false;
+			waiting_for_algo = false;
+			cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+		}
+		
+		function solve_click(_this){
+			$("#acquisition").prop("disabled", false);
+			$("#threshold").prop("disabled", true);
+			$("#conv").prop("disabled", true);
+			$("#solve").prop("disabled", true);
+			$("#algorit").prop("disabled", true);
+			acq_flag = false;
+			waiting_for_preImg = false;
+			waiting_for_conv = false;
+			waiting_for_solv = true;
+			waiting_for_algo = false;
+			cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+		}
+
+		function algo_click(_this){
+			$("#acquisition").prop("disabled", false);
+			$("#threshold").prop("disabled", true);
+			$("#conv").prop("disabled", true);
+			$("#solve").prop("disabled", true);
+			$("#algorit").prop("disabled", true);
+			acq_flag = false;
+			waiting_for_preImg = false;
+			waiting_for_conv = false;
+			waiting_for_solv = false;
+			waiting_for_algo = true;
+			cam.send(json_aqc.concat(acq_flag.toString(), json_pre, waiting_for_preImg.toString(), json_conv, waiting_for_conv.toString(), json_solv, waiting_for_solv.toString(), json_algo, waiting_for_algo.toString(), json_final));
+		}
+	</script>
+</head>
+
+<style>
+	/*butao*/ 
+	.button{
+		background-color: light-blue;
+		height:80px;
+		width:100px;
+	}
+	
+	button:disabled,
+	button[disabled]{
+		border: 1px solid #999999;
+		background-color: #cccccc;
+		color: #666666;
+	}
+	
+	.responsive {
+		width: 100%;
+		height: auto;
+	}
+
+
+	/*disposicao em colunas*/
+	.column {
+		float: left;
+		width: 25.33%;
+	}
+	.column1 {
+		float: left;
+		width: 10.33%;
+	}
+	.row:after {
+		content: "";
+		display: table;
+		clear: both;
+	}
+	@media screen and (max-width: 600px) {
+	.column {
+		width: 100%;
+		}
+	}
+	
+
+	@viewport {
+		width: device-width ;
+		zoom: 1.0 ;
+	}
+	/*adaptar a microsoft(ms), mozila(moz), etc*/
+	@-ms-viewport {
+		width: device-width ;
+	}
+	@-moz-viewport {
+		width: device-width ;
+	}
+	@-webkit-viewport {
+		width: device-width ;
+	}
+
+	/*navbar*/
+	ul {
+		list-style-type: none;
+		margin:0;
+		padding: 0;
+		overflow: hidden;
+		background-color: #333;
+		width:100%;
+		overflow: hidden;
+		top: 15;
+	}
+	li {
+		float: left;
+	}
+	li a {
+		display: block;
+		color: white;
+		text-align: center;
+		padding: 14px 16px;
+		text-decoration: none;
+	}
+	li a:hover {
+		background-color: #111;
+	}
+	h2{
+		margin: 10px;
+		padding:10px
+		
+	}
+	h3{
+		margin: 10px;
+		padding:10px;
+		margin-left:20px;
+	}
+	
+	footer {
+			background-color: #333;
+			color: #f5f5f5;
+			padding: 40px;
+			width: 100%;
+			min-width: 100%;
+	}
+	#wrap {
+		width:80%;
+		margin:20px auto;
+		padding:5px;/*workaround for textarea margin*/
+	}
+	textarea{
+		padding:20px;
+		width:100%;
+	}
+	
+</style>
+<body>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<h2><font face="verdana">Identificação e Resolução de Sudoku por Deep Learning</font></h2>
+	<ul>
+		<div class="container-fluid">
+		<div class="navbar-header">
+		<p>
+			<li><font face="verdana" color="white">Daniel Pinheiro 48022 (P1)</font></li><p>
+			<br>
+			<li><font face="verdana" color="white">Margarida Monteiro 47170 (P1)</font color="white"></li><p>
+			<br>
+			</div> 
+		<div>
+	</ul>
+	<br>
+	<div class="container-fluid">
+		<div class ="row">
+			<div class="col-md-4 text-center">
+				<p>
+					Imagem em tempo real
+				</p>
+				<img id="cam_real" src="" width="320" height="240"/>
+			</div>
+			
+			<div class="col-md-4 d-flex justify-content-center align-items-center">
+				<div class ="row">
+					<div class="col-6">
+						<br>
+						<div>
+							<button id="acquisition" class="button" onclick="acquisition_click(this)">Aquisição</button>
+						</div>
+						<br>
+						<br>
+						<div>
+							<button id="conv" class="button" onclick="conv_click(this)" disabled = "true">Obter números (ConvNet)</button>
+						</div>
+						<br>
+						<br>
+						<div>
+							<button id="algorit" class="button" onclick="algo_click(this)" disabled = "true">Resolver Sudoku (Algoritmo)</button>
+						</div>
+					</div>
+					
+					<div class="col-6">
+						<br>
+						<div>
+							<button id="threshold" class="button" onclick="threshold_click(this)" disabled = "true">Aplicar threshold e recortar</button>
+						</div>
+						<br>
+						<br>
+						<div>
+							<button id="solve" class="button" onclick="solve_click(this)" disabled = "true">Resolver Sudoku (Conv Net)</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class= "col-md-4 text-center">
+				<p>
+					Imagem escolhida
+				</p>
+				<img id="cam_aquisition" src="" width="320" height="240"/>
+			</div>
+		</div>
+	</div>
+	<br>
+	<div id="wrap">
+		<textarea readonly id="text_box" rows="5"></textarea>
+	</div>
+	<br><br>
+	<footer class="container text-center">
+		<ul>Aplicações Avançadas de Instrumentação 2019/2020<p>
+			Professor Doutor Hugo Gamboa</p>
+		</ul>
+	</footer>
+</body>
+
+</html> 

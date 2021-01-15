@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flask/Gevent WebSocket Test</title>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+            if ("WebSocket" in window) {
+                cam = new WebSocket("ws://" + document.domain + ":9999/camera");
+                cam.onmessage = function (msg) {
+					console.log(msg)
+					$("#cam").attr('src', 'data:image/jpg;base64,' + msg.data);
+                };
+                cam.onerror = function(e) {
+                    console.log(e);
+                }
+            } else {
+                alert("WebSocket not supported");
+            }
+        });
+    </script>
+</head>
+<style>
+/*butao*/ 
+.button{
+    background-color: light-blue;
+    height:80px;
+    width:100px;
+}
+.button1{
+    background-color: gray;
+    height:80px;
+    width:100px;
+}
+
+.responsive {
+  width: 100%;
+  height: auto;
+}
+
+
+/*disposicao em colunas*/
+.column {
+  float: left;
+  width: 25.33%;
+}
+.column1 {
+  float: left;
+  width: 10.33%;
+}
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+@viewport {
+  width: device-width ;
+  zoom: 1.0 ;
+}
+
+
+/*adaptar a microsoft(ms), mozila(moz), etc*/
+@-ms-viewport {
+  width: device-width ;
+}
+@-moz-viewport {
+  width: device-width ;
+}
+@-webkit-viewport {
+  width: device-width ;
+}
+
+
+
+@media screen and (max-width:320px) {
+  /* CSS for screens that are 320 pixels or less will be put in this section */
+}
+
+@media screen and (min-width:320px) and (max-width:640px) {
+  /* for screens that are at least 320 pixels wide but less than or equal to 640 pixels wide */
+}
+@media screen and (max-width: 320px) {
+  /* comes into effect for screens less than or equal to 320 pixels */
+  body {
+    background: blue;
+  }
+}
+@media screen and (min-width: 321px) and (max-width: 480px) {
+  /* comes into effect for screens between 321 and 480 pixels (inclusive) */
+  body {
+    background: blue ;
+  }
+}
+@media screen and (min-width: 481px) {
+  /* comes into effect for screens larger than or equal to 481 pixels */
+  body {
+    background: white ;
+  }
+}
+@media screen and (orientation:portrait) {
+  /* ... */
+}
+@media screen and (orientation: landscape) {
+  /* ... */
+}
+
+
+/*navbar*/
+ul {
+  list-style-type: none;
+  margin:0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+  width:100%;
+  overflow: hidden;
+  top: 15;
+}
+li {
+  float: left;
+}
+li a {
+  display: block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+li a:hover {
+  background-color: #111;
+}
+</style>
+<body>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<h2><font face="verdana">Aplicações Avançadas de Instrumentação 2019/2020</font></h2>
+	<h3><font face="verdana">Daniel Pinheiro 48022, Margarida Monteiro 47170</font></h3>
+	<ul>
+		<li><a href="description.asp">Descrição do Projeto</a></li>
+		<li><a href="sample_data.asp">Exemplos de dados de teste</a></li>
+		<li><a href="image_aquisition.asp">Aquisição de Imagens</a></li>
+		<li><a href="future.asp">Trabalho Futuro</a></li>
+	</ul>
+	<br><br>
+	<div class ="row">
+		<div class="column">Imagem em tempo real<br><img id="cam" src="" width="320" height="240" class="responsive"/></div>
+		<div class="column1"> 
+			<button class="button" >Aquisição</button><br>
+			<button class="button1">Imagem escolhida com threshold e recortada</button><br>
+			<button class="button1">Resolver Sudoku</button>
+		</div>
+		<div class="column">Imagem adquirida<br><img id="cam" src="" width="320" height="240" class="responsive"/></div>
+	</div>
+	<br><br>
+	<textarea rows="4" cols=80></textarea>
+	<footer></footer>
+</body>
+
+</html> 
